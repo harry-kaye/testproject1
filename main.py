@@ -1,12 +1,12 @@
 import requests
 
 def get_coordinates(city_name, api_key):
-    url = f"https://api.openweathermap.org/data/3.0/weather?q={city_name}&appid={api_key}"
+    url = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name}&appid={api_key}"
     response = requests.get(url)
     data = response.json()
-    if data["cod"] == 200:
-        lat = data["coord"]["lat"]
-        lon = data["coord"]["lon"]
+    if data:  # Check if the list is not empty
+        lat = data[0]["lat"]
+        lon = data[0]["lon"]
         return lat, lon
     else:
         print("City not found.")
