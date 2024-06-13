@@ -1,35 +1,32 @@
 import requests
 
-city = input("Enter City:")
+city = input("Enter City: ")
+country = input("Enter Country (use 2-letter ISO code): ")
+state = ""
+
+if country.upper() == "US":
+    state = input("Enter State (if applicable): ")
 
 api_key = "84d49f27e68dd133ed760ed3498ad524"
-url = "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&units=metric".format(city, api_key)
+location_query = city
+
+if state:
+    location_query += f",{state}"
+location_query += f",{country}"
+
+url = f"http://api.openweathermap.org/data/2.5/weather?q={location_query}&appid={api_key}&units=metric"
 
 res = requests.get(url)
 data = res.json()
 
 if res.status_code == 200:
-    country = data['sys']['country']
-    state = ""
-
-    # If the country is the USA, get state using the geocoding API
-    if country == "US":
-        geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city},{country}&appid={api_key}"
-        geo_res = requests.get(geo_url)
-        geo_data = geo_res.json()
-        if geo_res.status_code == 200 and geo_data:
-            state = geo_data[0].get('state', "")
-
     humidity = data['main']['humidity']
     pressure = data['main']['pressure']
     wind = data['wind']['speed']
     description = data['weather'][0]['description']
     temp = data['main']['temp']
 
-    print('City:', city)
-    if state:
-        print('State:', state)
-    print('Country:', country)
+    print(f'Location: {city}, {state if state else ""} {country}')
     print('Temperature:', temp, '°C')
     print('Wind:', wind)
     print('Pressure:', pressure)
