@@ -1,9 +1,11 @@
 import requests
-import tkinter as tk
-from tkinter import messagebox
+import streamlit as st
+from datetime import datetime
+import pytz
 
-def show_country_codes():
-    country_codes = {
+
+def get_country_codes():
+    return {
         "Afghanistan": "AF", "Albania": "AL", "Algeria": "DZ", "Andorra": "AD",
         "Angola": "AO", "Antigua and Barbuda": "AG", "Argentina": "AR", "Armenia": "AM",
         "Australia": "AU", "Austria": "AT", "Azerbaijan": "AZ", "Bahamas": "BS",
@@ -54,46 +56,56 @@ def show_country_codes():
         "Venezuela": "VE", "Vietnam": "VN", "Yemen": "YE", "Zambia": "ZM", "Zimbabwe": "ZW"
     }
 
-    message = "\n".join([f"{country}: {code}" for country, code in country_codes.items()])
-    messagebox.showinfo("Country Codes", message)
 
-# Create a simple Tkinter window
-root = tk.Tk()
-root.withdraw()  # Hide the main window
+def fetch_weather(city, country, state="", api_key="84d49f27e68dd133ed760ed3498ad524"):
+    location_query = f"{city},{country}"
+    if state:
+        location_query = f"{city},{state},{country}"
 
-# Show the country codes popup
-show_country_codes()
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={location_query}&appid={api_key}&units=metric"
+    res = requests.get(url)
+    return res.json(), res.status_code
 
-city = input("Enter City: ")
-country = input("Enter Country (use 2-letter ISO code): ").upper()
+
+def get_local_time(timezone):
+    local_time = datetime.now(pytz.timezone(timezone))
+    return local_time.strftime("%A, %d %B %Y, %I:%M %p")
+
+
+st.title("Weather Information")
+
+country_codes = get_country_codes()
+
+if st.button("Show Country Codes"):
+    country_code_str = "\n".join([f"{country}: {code}" for country, code in country_codes.items()])
+    st.text_area("Country Codes", value=country_code_str, height=200)
+
+city = st.text_input("Enter City")
+country = st.text_input("Enter Country (use 2-letter ISO code)").upper()
 state = ""
-
 if country == "US":
-    state = input("Enter State (if applicable): ")
+    state = st.text_input("Enter State (if applicable)")
 
-api_key = "84d49f27e68dd133ed760ed3498ad524"
-location_query = f"{city},{country}"
+if st.button("Get Weather Information"):
+    data, status_code = fetch_weather(city, country, state)
 
-if state:
-    location_query = f"{city},{state},{country}"
+    if status_code == 200:
+        humidity = data['main']['humidity']
+        pressure = data['main']['pressure']
+        wind = data['wind']['speed']
+        description = data['weather'][0]['description']
+        temp = data['main']['temp']
+        timezone = data['timezone']
 
-url = f"http://api.openweathermap.org/data/2.5/weather?q={location_query}&appid={api_key}&units=metric"
+        local_time = get_local_time(
+            pytz.timezone('UTC').localize(datetime.utcnow()).astimezone(pytz.timezone('Etc/GMT+0')).tzname())
 
-res = requests.get(url)
-data = res.json()
-
-if res.status_code == 200:
-    humidity = data['main']['humidity']
-    pressure = data['main']['pressure']
-    wind = data['wind']['speed']
-    description = data['weather'][0]['description']
-    temp = data['main']['temp']
-
-    print(f'Location: {city}, {state if state else ""} {country}')
-    print('Temperature:', temp, '°C')
-    print('Wind:', wind)
-    print('Pressure:', pressure)
-    print('Humidity:', humidity)
-    print('Description:', description)
-else:
-    print("Error:", data.get("message", "Unable to fetch data."))
+        st.write(f"**Location:** {city}, {state if state else ''} {country}")
+        st.write(f"**Local Time:** {local_time}")
+        st.write(f"**Temperature:** {temp} °C")
+        st.write(f"**Wind:** {wind} m/s")
+        st.write(f"**Pressure:** {pressure} hPa")
+        st.write(f"**Humidity:** {humidity} %")
+        st.write(f"**Description:** {description}")
+    else:
+        st.write(f"Error: {data.get('message', 'Unable to fetch data.')}")
