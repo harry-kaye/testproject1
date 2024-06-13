@@ -55,7 +55,7 @@ def get_country_codes():
         "Venezuela": "VE", "Vietnam": "VN", "Yemen": "YE", "Zambia": "ZM", "Zimbabwe": "ZW"
     }
 
-def fetch_weather(city, country, state="", api_key="84d49f27e68dd133ed760ed3498ad524"):
+def fetch_weather(city, country, state="", api_key=""):
     location_query = f"{city},{country}"
     if state:
         location_query = f"{city},{state},{country}"
