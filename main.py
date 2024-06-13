@@ -1,8 +1,7 @@
 import requests
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
-
 
 def get_country_codes():
     return {
@@ -56,7 +55,6 @@ def get_country_codes():
         "Venezuela": "VE", "Vietnam": "VN", "Yemen": "YE", "Zambia": "ZM", "Zimbabwe": "ZW"
     }
 
-
 def fetch_weather(city, country, state="", api_key="84d49f27e68dd133ed760ed3498ad524"):
     location_query = f"{city},{country}"
     if state:
@@ -66,11 +64,10 @@ def fetch_weather(city, country, state="", api_key="84d49f27e68dd133ed760ed3498a
     res = requests.get(url)
     return res.json(), res.status_code
 
-
-def get_local_time(timezone):
-    local_time = datetime.now(pytz.timezone(timezone))
+def get_local_time(timezone_offset):
+    utc_time = datetime.utcnow()
+    local_time = utc_time + timedelta(seconds=timezone_offset)
     return local_time.strftime("%A, %d %B %Y, %I:%M %p")
-
 
 st.title("Weather Information")
 
@@ -95,10 +92,9 @@ if st.button("Get Weather Information"):
         wind = data['wind']['speed']
         description = data['weather'][0]['description']
         temp = data['main']['temp']
-        timezone = data['timezone']
+        timezone_offset = data['timezone']
 
-        local_time = get_local_time(
-            pytz.timezone('UTC').localize(datetime.utcnow()).astimezone(pytz.timezone('Etc/GMT+0')).tzname())
+        local_time = get_local_time(timezone_offset)
 
         st.write(f"**Location:** {city}, {state if state else ''} {country}")
         st.write(f"**Local Time:** {local_time}")
