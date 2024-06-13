@@ -61,23 +61,21 @@ def show_country_codes():
 root = tk.Tk()
 root.withdraw()  # Hide the main window
 
-print("Use the 2 letter country code displayed here. Close the popup to continue.")
 # Show the country codes popup
 show_country_codes()
 
 city = input("Enter City: ")
-country = input("Enter Country (use 2-letter ISO code): ")
+country = input("Enter Country (use 2-letter ISO code): ").upper()
 state = ""
 
-if country.upper() == "US":
+if country == "US":
     state = input("Enter State (if applicable): ")
 
 api_key = "84d49f27e68dd133ed760ed3498ad524"
-location_query = city
+location_query = f"{city},{country}"
 
 if state:
-    location_query += f",{state}"
-location_query += f",{country}"
+    location_query = f"{city},{state},{country}"
 
 url = f"http://api.openweathermap.org/data/2.5/weather?q={location_query}&appid={api_key}&units=metric"
 
