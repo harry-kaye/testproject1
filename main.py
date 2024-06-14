@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime, timedelta, timezone
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def show_country_codes():
     country_codes = {
@@ -82,16 +83,16 @@ def get_forecast_data(city, country, state, api_key):
         for forecast in data['list']:
             forecast_time = datetime.fromtimestamp(forecast['dt'], timezone.utc) + timedelta(seconds=data['city']['timezone'])
             temp = forecast['main']['temp']
+            humidity = forecast['main']['humidity']
             description = forecast['weather'][0]['description']
             wind = forecast['wind']['speed']
-            humidity = forecast['main']['humidity']
             pressure = forecast['main']['pressure']
             forecast_data.append({
                 'Forecast Time': forecast_time.strftime("%A, %d %B %Y, %I:%M %p"),
                 'Temperature (°C)': temp,
+                'Humidity (%)': humidity,
                 'Description': description,
                 'Wind Speed (m/s)': wind,
-                'Humidity (%)': humidity,
                 'Pressure (hPa)': pressure
             })
         return forecast_data
@@ -99,7 +100,7 @@ def get_forecast_data(city, country, state, api_key):
         return None
 
 # Show the country codes popup or print them if Tkinter cannot open
-show_country_codes()
+# show_country_codes()
 
 city = input("Enter City: ")
 country = input("Enter Country (use 2-letter ISO code): ").upper()
@@ -119,7 +120,18 @@ if state:
 forecast_data = get_forecast_data(city, country, state, api_key)
 if forecast_data:
     df = pd.DataFrame(forecast_data)
-    print("\n5-day Forecast:")
-    print(df)
+
+    # Plotting Temperature and Humidity over Time
+    plt.figure(figsize=(10, 6))
+    plt.plot(df['Forecast Time'], df['Temperature (°C)'], marker='o', linestyle='-', color='b', label='Temperature (°C)')
+    plt.plot(df['Forecast Time'], df['Humidity (%)'], marker='o', linestyle='-', color='g', label='Humidity (%)')
+    plt.title('5-Day Weather Forecast')
+    plt.xlabel('Forecast Time')
+    plt.ylabel('Values')
+    plt.xticks(rotation=45)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 else:
     print("Unable to fetch forecast data.")
