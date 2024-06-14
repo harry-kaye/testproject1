@@ -1,7 +1,6 @@
 import requests
-import tkinter as tk
-from tkinter import messagebox
 from datetime import datetime, timedelta, timezone
+import pandas as pd
 
 def show_country_codes():
     country_codes = {
@@ -87,7 +86,14 @@ def get_forecast_data(city, country, state, api_key):
             wind = forecast['wind']['speed']
             humidity = forecast['main']['humidity']
             pressure = forecast['main']['pressure']
-            forecast_data.append((forecast_time.strftime("%A, %d %B %Y, %I:%M %p"), temp, description, wind, humidity, pressure))
+            forecast_data.append({
+                'Forecast Time': forecast_time.strftime("%A, %d %B %Y, %I:%M %p"),
+                'Temperature (°C)': temp,
+                'Description': description,
+                'Wind Speed (m/s)': wind,
+                'Humidity (%)': humidity,
+                'Pressure (hPa)': pressure
+            })
         return forecast_data
     else:
         return None
@@ -109,44 +115,11 @@ location_query = f"{city},{country}"
 if state:
     location_query = f"{city},{state},{country}"
 
-# Current weather data
-url = f"http://api.openweathermap.org/data/2.5/weather?q={location_query}&appid={api_key}&units=metric"
-
-res = requests.get(url)
-data = res.json()
-
-if res.status_code == 200:
-    humidity = data['main']['humidity']
-    pressure = data['main']['pressure']
-    wind = data['wind']['speed']
-    description = data['weather'][0]['description']
-    temp = data['main']['temp']
-    timezone_offset = data['timezone']
-
-    local_time = get_local_time(timezone_offset)
-
-    print(f'Location: {city}, {state if state else ""} {country}')
-    print(f'Local Time: {local_time}')
-    print(f'Temperature: {temp} °C')
-    print(f'Wind: {wind} m/s')
-    print(f'Pressure: {pressure} hPa')
-    print(f'Humidity: {humidity} %')
-    print(f'Description: {description}')
-else:
-    print("Error:", data.get("message", "Unable to fetch data."))
-
 # 5-day forecast data
 forecast_data = get_forecast_data(city, country, state, api_key)
 if forecast_data:
+    df = pd.DataFrame(forecast_data)
     print("\n5-day Forecast:")
-    for forecast in forecast_data[:5*8:8]:  # 5 days, taking one forecast per day
-        forecast_time, temp, description, wind, humidity, pressure = forecast
-        print(f'Date & Time: {forecast_time}')
-        print(f'Temperature: {temp} °C')
-        print(f'Weather: {description}')
-        print(f'Wind: {wind} m/s')
-        print(f'Humidity: {humidity} %')
-        print(f'Pressure: {pressure} hPa')
-        print('---')
+    print(df)
 else:
     print("Unable to fetch forecast data.")
