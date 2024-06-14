@@ -1,10 +1,10 @@
 import requests
-import streamlit as st
+import tkinter as tk
+from tkinter import messagebox
 from datetime import datetime, timedelta
-import pytz
 
-def get_country_codes():
-    return {
+def show_country_codes():
+    country_codes = {
         "Afghanistan": "AF", "Albania": "AL", "Algeria": "DZ", "Andorra": "AD",
         "Angola": "AO", "Antigua and Barbuda": "AG", "Argentina": "AR", "Armenia": "AM",
         "Australia": "AU", "Austria": "AT", "Azerbaijan": "AZ", "Bahamas": "BS",
@@ -55,53 +55,98 @@ def get_country_codes():
         "Venezuela": "VE", "Vietnam": "VN", "Yemen": "YE", "Zambia": "ZM", "Zimbabwe": "ZW"
     }
 
-def fetch_weather(city, country, state="", api_key=""):
-    location_query = f"{city},{country}"
-    if state:
-        location_query = f"{city},{state},{country}"
-
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={location_query}&appid={api_key}&units=metric"
-    res = requests.get(url)
-    return res.json(), res.status_code
+    message = "\n".join([f"{country}: {code}" for country, code in country_codes.items()])
+    try:
+        root = tk.Tk()
+        root.withdraw()  # Hide the main window
+        messagebox.showinfo("Country Codes", message)
+    except tk.TclError:
+        print("Unable to open a Tkinter window. Here are the country codes:")
+        print(message)
 
 def get_local_time(timezone_offset):
     utc_time = datetime.utcnow()
     local_time = utc_time + timedelta(seconds=timezone_offset)
     return local_time.strftime("%A, %d %B %Y, %I:%M %p")
 
-st.title("Weather Information")
+def get_forecast_data(city, country, state, api_key):
+    location_query = f"{city},{country}"
+    if state:
+        location_query = f"{city},{state},{country}"
 
-country_codes = get_country_codes()
+    url = f"http://api.openweathermap.org/data/2.5/forecast?q={location_query}&appid={api_key}&units=metric"
+    res = requests.get(url)
+    data = res.json()
 
-if st.button("Show Country Codes"):
-    country_code_str = "\n".join([f"{country}: {code}" for country, code in country_codes.items()])
-    st.text_area("Country Codes", value=country_code_str, height=200)
-
-city = st.text_input("Enter City")
-country = st.text_input("Enter Country (use 2-letter ISO code)").upper()
-state = ""
-if country == "US":
-    state = st.text_input("Enter State (if applicable)")
-
-if st.button("Get Weather Information"):
-    data, status_code = fetch_weather(city, country, state)
-
-    if status_code == 200:
-        humidity = data['main']['humidity']
-        pressure = data['main']['pressure']
-        wind = data['wind']['speed']
-        description = data['weather'][0]['description']
-        temp = data['main']['temp']
-        timezone_offset = data['timezone']
-
-        local_time = get_local_time(timezone_offset)
-
-        st.write(f"**Location:** {city}, {state if state else ''} {country}")
-        st.write(f"**Local Time:** {local_time}")
-        st.write(f"**Temperature:** {temp} °C")
-        st.write(f"**Wind:** {wind} m/s")
-        st.write(f"**Pressure:** {pressure} hPa")
-        st.write(f"**Humidity:** {humidity} %")
-        st.write(f"**Description:** {description}")
+    if res.status_code == 200:
+        forecast_data = []
+        for forecast in data['list']:
+            forecast_time = datetime.utcfromtimestamp(forecast['dt']) + timedelta(seconds=data['city']['timezone'])
+            temp = forecast['main']['temp']
+            description = forecast['weather'][0]['description']
+            wind = forecast['wind']['speed']
+            humidity = forecast['main']['humidity']
+            pressure = forecast['main']['pressure']
+            forecast_data.append((forecast_time.strftime("%A, %d %B %Y, %I:%M %p"), temp, description, wind, humidity, pressure))
+        return forecast_data
     else:
-        st.write(f"Error: {data.get('message', 'Unable to fetch data.')}")
+        return None
+
+# Show the country codes popup or print them if Tkinter cannot open
+show_country_codes()
+
+city = input("Enter City: ")
+country = input("Enter Country (use 2-letter ISO code): ").upper()
+state = ""
+
+if country == "US":
+    state = input("Enter State (if applicable): ")
+
+api_key = input("API key: ")
+
+location_query = f"{city},{country}"
+
+if state:
+    location_query = f"{city},{state},{country}"
+
+# Current weather data
+url = f"http://api.openweathermap.org/data/2.5/weather?q={location_query}&appid={api_key}&units=metric"
+
+res = requests.get(url)
+data = res.json()
+
+if res.status_code == 200:
+    humidity = data['main']['humidity']
+    pressure = data['main']['pressure']
+    wind = data['wind']['speed']
+    description = data['weather'][0]['description']
+    temp = data['main']['temp']
+    timezone_offset = data['timezone']
+
+    local_time = get_local_time(timezone_offset)
+
+    print(f'Location: {city}, {state if state else ""} {country}')
+    print(f'Local Time: {local_time}')
+    print(f'Temperature: {temp} °C')
+    print(f'Wind: {wind} m/s')
+    print(f'Pressure: {pressure} hPa')
+    print(f'Humidity: {humidity} %')
+    print(f'Description: {description}')
+else:
+    print("Error:", data.get("message", "Unable to fetch data."))
+
+# 5-day forecast data
+forecast_data = get_forecast_data(city, country, state, api_key)
+if forecast_data:
+    print("\n5-day Forecast:")
+    for forecast in forecast_data[:5*8:8]:  # 5 days, taking one forecast per day
+        forecast_time, temp, description, wind, humidity, pressure = forecast
+        print(f'Date & Time: {forecast_time}')
+        print(f'Temperature: {temp} °C')
+        print(f'Weather: {description}')
+        print(f'Wind: {wind} m/s')
+        print(f'Humidity: {humidity} %')
+        print(f'Pressure: {pressure} hPa')
+        print('---')
+else:
+    print("Unable to fetch forecast data.")
