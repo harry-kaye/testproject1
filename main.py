@@ -109,12 +109,22 @@ state = ""
 if country == "US":
     state = input("Enter State (if applicable): ")
 
+# api key removed
 api_key = input("API key: ")
 
 location_query = f"{city},{country}"
 
 if state:
     location_query = f"{city},{state},{country}"
+
+# 5-day forecast data
+forecast_data = get_forecast_data(city, country, state, api_key)
+if forecast_data:
+    df = pd.DataFrame(forecast_data)
+    print("\n5-day Forecast:")
+    print(df)
+else:
+    print("Unable to fetch forecast data.")
 
 # 5-day forecast data
 forecast_data = get_forecast_data(city, country, state, api_key)
