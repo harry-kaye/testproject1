@@ -1,7 +1,7 @@
 import requests
 import tkinter as tk
 from tkinter import messagebox
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def show_country_codes():
     country_codes = {
@@ -65,7 +65,7 @@ def show_country_codes():
         print(message)
 
 def get_local_time(timezone_offset):
-    utc_time = datetime.utcnow()
+    utc_time = datetime.now(timezone.utc)
     local_time = utc_time + timedelta(seconds=timezone_offset)
     return local_time.strftime("%A, %d %B %Y, %I:%M %p")
 
@@ -81,7 +81,7 @@ def get_forecast_data(city, country, state, api_key):
     if res.status_code == 200:
         forecast_data = []
         for forecast in data['list']:
-            forecast_time = datetime.utcfromtimestamp(forecast['dt']) + timedelta(seconds=data['city']['timezone'])
+            forecast_time = datetime.fromtimestamp(forecast['dt'], timezone.utc) + timedelta(seconds=data['city']['timezone'])
             temp = forecast['main']['temp']
             description = forecast['weather'][0]['description']
             wind = forecast['wind']['speed']
