@@ -17,20 +17,16 @@ This project is a weather forecast application that provides a 5-day weather for
 **Installation**
 1.	Clone the Repository:
 bash
-Copy code
 git clone https://github.com/harry-kaye/testproject1.git
 
-2.	Install Dependencies:
-Copy code
+3.	Install Dependencies:
 pip install -r requirements.txt
-3.	Get OpenWeatherMap API Key:
+4.	Get OpenWeatherMap API Key:
 o	Sign up at OpenWeatherMap to get a free API key.
 
 **Usage**
 1.	Run the Application:
-  arduino
-  Copy code
-  streamlit run app.py (not implemented yet)
+    streamlit run app.py (not implemented yet)
 2.	Enter Location Details:
 o	Enter the city name.
 o	Enter the 2-letter country code (ISO code).
