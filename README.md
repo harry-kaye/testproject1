@@ -1,20 +1,18 @@
 **Weather Forecast Application**
-This project is a weather forecast application that provides a 5-day weather forecast for a specified location using the OpenWeatherMap API. The application is built using Python and Streamlit*, allowing for interactive and web-based visualizations.
-* to be implemented in a future build. 
+This project is a weather forecast application that provides a 5-day weather forecast for a specified location using the OpenWeatherMap API. The application is built using Python and Streamlit, allowing for interactive and web-based visualizations. 
 
 **Features**
 •	Real-time Weather Data: Fetches the current weather data including temperature, humidity, wind speed, and weather description.
 •	5-Day Weather Forecast: Provides a detailed 5-day weather forecast with temperature, humidity, wind speed, and weather description for each day.
 •	Interactive Graph: Displays an interactive graph showing temperature and humidity trends over the next 5 days.
-•	Streamlit Web Interface*: User-friendly web interface for entering location details and displaying weather data.
-* to be implemented in a future build. 
+•	Streamlit Web Interface: User-friendly web interface for entering location details and displaying weather data. 
 
 **Requirements**
 •	Python 3.x
 •	Requests
 •	Pandas
 •	Matplotlib
-* Streamlit - to be implemented in a future build. 
+* Streamlit. 
 
 **Installation**
 1.	Clone the Repository:
